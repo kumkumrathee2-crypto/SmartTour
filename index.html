@@ -1,0 +1,1862 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Tourist Safety Monitoring & Incident Response System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #059669 75%, #10b981 100%);
+        }
+        
+        .glow-animation {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .pulse-dot {
+            animation: pulse-dot 2s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .red-zone-pulse {
+            animation: redZonePulse 2s infinite;
+        }
+        
+        @keyframes redZonePulse {
+            0%, 100% { background-color: rgba(239, 68, 68, 0.2); }
+            50% { background-color: rgba(239, 68, 68, 0.4); }
+        }
+        
+        .weather-alert {
+            animation: weatherAlert 3s ease-in-out infinite;
+        }
+        
+        @keyframes weatherAlert {
+            0%, 100% { border-color: #f59e0b; }
+            50% { border-color: #ef4444; }
+        }
+
+        .stat-counter {
+            animation: countUp 2s ease-out forwards;
+        }
+        
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feature-interactive {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feature-interactive:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .demo-notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .expandable-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+
+        .expandable-section.expanded {
+            max-height: 2000px;
+        }
+
+        .expand-button {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-button.rotated {
+            transform: rotate(180deg);
+        }
+
+        .demo-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .demo-panel.active {
+            right: 0;
+        }
+
+        .demo-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .demo-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* New styles for tabs */
+        .tab-button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Demo Panel Overlay -->
+    <div class="demo-overlay" id="demoOverlay" onclick="closeDemoPanel()"></div>
+    
+    <!-- Demo Panel -->
+    <div class="demo-panel" id="demoPanel">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900" id="demoPanelTitle">Feature Demo</h3>
+                <button onclick="closeDemoPanel()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="demoPanelContent">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Alert Banner -->
+    <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 px-4 text-center text-sm font-medium weather-alert border-2">
+        🌧️ Weather Alert: Heavy rainfall expected in Mumbai region. Tourist advisory in effect. 
+        <a href="#" class="underline ml-2">View Details</a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-gray-900">SafeTour India</span>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#challenges" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Challenges</a>
+                        <a href="#features" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Features</a>
+                        <a href="#how-it-works" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">How It Works</a>
+                        <a href="#technology" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Technology</a>
+                        <a href="#contact" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg min-h-screen flex items-center relative overflow-hidden mt-10">
+        <div class="absolute inset-0 opacity-10">
+            <svg class="w-full h-full" viewBox="0 0 800 600">
+                <!-- Animated Globe -->
+                <circle cx="400" cy="300" r="200" fill="none" stroke="white" stroke-width="1" opacity="0.3" class="pulse-dot"/>
+                <circle cx="400" cy="300" r="150" fill="none" stroke="white" stroke-width="1" opacity="0.5" class="pulse-dot" style="animation-delay: 0.5s"/>
+                <circle cx="400" cy="300" r="100" fill="none" stroke="white" stroke-width="1" opacity="0.7" class="pulse-dot" style="animation-delay: 1s"/>
+                
+                <!-- Tourist Location Dots -->
+                <circle cx="300" cy="200" r="3" fill="orange" class="pulse-dot"/>
+                <circle cx="500" cy="250" r="3" fill="yellow" class="pulse-dot" style="animation-delay: 0.3s"/>
+                <circle cx="350" cy="400" r="3" fill="orange" class="pulse-dot" style="animation-delay: 0.7s"/>
+                <circle cx="450" cy="350" r="3" fill="yellow" class="pulse-dot" style="animation-delay: 1.2s"/>
+                
+                <!-- Red Zones -->
+                <circle cx="320" cy="280" r="15" fill="rgba(239, 68, 68, 0.3)" class="red-zone-pulse"/>
+                <circle cx="480" cy="320" r="12" fill="rgba(239, 68, 68, 0.3)" class="red-zone-pulse" style="animation-delay: 0.5s"/>
+            </svg>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center">
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 slide-in">
+                    Smart Tourist Safety
+                    <span class="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
+                        Monitoring System
+                    </span>
+                </h1>
+                <p class="text-xl md:text-2xl text-blue-100 mb-8 slide-in" style="animation-delay: 0.2s">
+                    AI + Blockchain + Geo-Fencing for Safer Tourism
+                </p>
+                <p class="text-lg text-blue-200 mb-12 max-w-3xl mx-auto slide-in" style="animation-delay: 0.4s">
+                    Revolutionary safety platform protecting tourists across India through advanced technology, real-time monitoring, weather alerts, and instant emergency response coordination.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center slide-in" style="animation-delay: 0.6s">
+                    <button class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 glow-animation" onclick="showFeatureDemo('blockchain')">
+                        Get Digital ID
+                    </button>
+                    <button class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300" onclick="showDashboardDemo('tourist-app')">
+                        Tourist App
+                    </button>
+                    <button class="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300" onclick="showDashboardDemo('authority-dashboard')">
+                        Authority Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tourist Safety Challenges with Comprehensive Data -->
+    <section id="challenges" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Tourist Safety Challenges in India</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    India welcomes over 10.93 million international tourists annually, but faces significant safety challenges across diverse terrains and climates.
+                </p>
+                <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                    <div class="bg-red-50 p-4 rounded-lg stat-counter">
+                        <div class="text-3xl font-bold text-red-600">2,847</div>
+                        <div class="text-sm text-gray-600">Tourist incidents (2023)</div>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg stat-counter" style="animation-delay: 0.2s">
+                        <div class="text-3xl font-bold text-orange-600">156</div>
+                        <div class="text-sm text-gray-600">Weather emergencies</div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg stat-counter" style="animation-delay: 0.4s">
+                        <div class="text-3xl font-bold text-yellow-600">4.2hrs</div>
+                        <div class="text-sm text-gray-600">Avg response time</div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg stat-counter" style="animation-delay: 0.6s">
+                        <div class="text-3xl font-bold text-blue-600">28</div>
+                        <div class="text-sm text-gray-600">States covered</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg card-hover cursor-pointer" onclick="toggleChallengeData('remote-areas')">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Remote Areas</h3>
+                    <p class="text-gray-600 mb-3">Limited connectivity and delayed emergency response in hill stations and remote destinations</p>
+                    <div class="text-sm text-red-600 font-semibold">67% of incidents in remote locations</div>
+                    <div class="mt-2 text-blue-600 text-sm font-medium">Click for detailed data →</div>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg card-hover cursor-pointer" onclick="toggleChallengeData('weather-emergencies')">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Weather Emergencies</h3>
+                    <p class="text-gray-600 mb-3">Sudden monsoons, landslides, and natural disasters affecting tourist safety</p>
+                    <div class="text-sm text-orange-600 font-semibold">156 weather incidents in 2023</div>
+                    <div class="mt-2 text-blue-600 text-sm font-medium">Click for detailed data →</div>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg card-hover cursor-pointer" onclick="toggleChallengeData('unsafe-zones')">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 red-zone-pulse">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Unsafe Zones</h3>
+                    <p class="text-gray-600 mb-3">High-crime areas and restricted regions without proper tourist warnings</p>
+                    <div class="text-sm text-red-600 font-semibold">342 red-zone incidents</div>
+                    <div class="mt-2 text-blue-600 text-sm font-medium">Click for detailed data →</div>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg card-hover cursor-pointer" onclick="toggleChallengeData('fare-exploitation')">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Fare Exploitation</h3>
+                    <p class="text-gray-600 mb-3">Overcharging and lack of transparent pricing for transport and services</p>
+                    <div class="text-sm text-yellow-600 font-semibold">₹2.3Cr tourist losses annually</div>
+                    <div class="mt-2 text-blue-600 text-sm font-medium">Click for detailed data →</div>
+                </div>
+            </div>
+
+            <!-- Expandable Challenge Data Sections -->
+            <div id="remote-areas-data" class="expandable-section bg-gray-50 rounded-2xl p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Remote Areas - Detailed Analysis</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Most Affected Regions</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                                <span>Ladakh & Kashmir</span>
+                                <span class="font-bold text-red-600">234 incidents</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                                <span>Himachal Pradesh Hills</span>
+                                <span class="font-bold text-orange-600">189 incidents</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                                <span>Uttarakhand Mountains</span>
+                                <span class="font-bold text-yellow-600">156 incidents</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span>Northeast States</span>
+                                <span class="font-bold text-blue-600">123 incidents</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Communication Challenges</h4>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-red-500 pl-4">
+                                <div class="font-medium">Network Coverage</div>
+                                <div class="text-sm text-gray-600">Only 34% areas have reliable 4G coverage</div>
+                            </div>
+                            <div class="border-l-4 border-orange-500 pl-4">
+                                <div class="font-medium">Emergency Services</div>
+                                <div class="text-sm text-gray-600">Average response time: 6.8 hours</div>
+                            </div>
+                            <div class="border-l-4 border-yellow-500 pl-4">
+                                <div class="font-medium">GPS Accuracy</div>
+                                <div class="text-sm text-gray-600">±50m error in mountainous terrain</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="weather-emergencies-data" class="expandable-section bg-gray-50 rounded-2xl p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Weather Emergencies - Detailed Analysis</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Monsoon Impact (June-September)</h4>
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 p-3 rounded-lg">
+                                <div class="font-bold text-blue-600">89 incidents</div>
+                                <div class="text-sm">Flash floods & landslides</div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <div class="font-bold text-green-600">67 incidents</div>
+                                <div class="text-sm">Road blockages</div>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <div class="font-bold text-yellow-600">45 incidents</div>
+                                <div class="text-sm">Tourist stranded</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Cyclone Affected Areas</h4>
+                        <div class="space-y-2 text-sm">
+                            <div>• Odisha Coast: 23 incidents</div>
+                            <div>• West Bengal: 18 incidents</div>
+                            <div>• Tamil Nadu: 15 incidents</div>
+                            <div>• Andhra Pradesh: 12 incidents</div>
+                            <div>• Gujarat: 8 incidents</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Extreme Weather Stats</h4>
+                        <div class="space-y-3">
+                            <div class="text-center p-3 bg-red-50 rounded-lg">
+                                <div class="font-bold text-red-600">48°C</div>
+                                <div class="text-xs">Max temperature recorded</div>
+                            </div>
+                            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                                <div class="font-bold text-blue-600">-15°C</div>
+                                <div class="text-xs">Min temperature recorded</div>
+                            </div>
+                            <div class="text-center p-3 bg-orange-50 rounded-lg">
+                                <div class="font-bold text-orange-600">300mm</div>
+                                <div class="text-xs">Max rainfall in 24hrs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="unsafe-zones-data" class="expandable-section bg-gray-50 rounded-2xl p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Unsafe Zones - Crime & Security Analysis</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">High-Risk Areas by City</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-red-100 rounded-lg">
+                                <div>
+                                    <div class="font-bold">Delhi NCR</div>
+                                    <div class="text-xs text-gray-600">Connaught Place, Paharganj</div>
+                                </div>
+                                <span class="font-bold text-red-600">89 cases</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-orange-100 rounded-lg">
+                                <div>
+                                    <div class="font-bold">Mumbai</div>
+                                    <div class="text-xs text-gray-600">Colaba, Crawford Market</div>
+                                </div>
+                                <span class="font-bold text-orange-600">67 cases</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-yellow-100 rounded-lg">
+                                <div>
+                                    <div class="font-bold">Goa</div>
+                                    <div class="text-xs text-gray-600">Anjuna, Arambol beaches</div>
+                                </div>
+                                <span class="font-bold text-yellow-600">45 cases</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Crime Types Distribution</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-red-500 rounded mr-3"></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <span>Theft & Pickpocketing</span>
+                                        <span class="font-bold">67%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div class="bg-red-500 h-2 rounded-full" style="width: 67%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-orange-500 rounded mr-3"></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <span>Overcharging</span>
+                                        <span class="font-bold">23%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div class="bg-orange-500 h-2 rounded-full" style="width: 23%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-yellow-500 rounded mr-3"></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <span>Harassment</span>
+                                        <span class="font-bold">8%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div class="bg-yellow-500 h-2 rounded-full" style="width: 8%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-blue-500 rounded mr-3"></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between">
+                                        <span>Other</span>
+                                        <span class="font-bold">2%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div class="bg-blue-500 h-2 rounded-full" style="width: 2%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fare-exploitation-data" class="expandable-section bg-gray-50 rounded-2xl p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Fare Exploitation - Economic Impact Analysis</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Transport Overcharging</h4>
+                        <div class="space-y-3">
+                            <div class="bg-red-50 p-3 rounded-lg">
+                                <div class="font-bold text-red-600">Auto Rickshaw</div>
+                                <div class="text-sm">Average overcharge: 150-300%</div>
+                                <div class="text-xs text-gray-600">1,234 reported cases</div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-lg">
+                                <div class="font-bold text-orange-600">Taxi Services</div>
+                                <div class="text-sm">Average overcharge: 200-400%</div>
+                                <div class="text-xs text-gray-600">867 reported cases</div>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <div class="font-bold text-yellow-600">Tour Packages</div>
+                                <div class="text-sm">Average overcharge: 100-250%</div>
+                                <div class="text-xs text-gray-600">456 reported cases</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Service Overpricing</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span>Hotel Rooms</span>
+                                <span class="font-bold text-red-600">+180%</span>
+                            </div>
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span>Restaurant Bills</span>
+                                <span class="font-bold text-orange-600">+120%</span>
+                            </div>
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span>Guide Services</span>
+                                <span class="font-bold text-yellow-600">+200%</span>
+                            </div>
+                            <div class="flex justify-between p-2 bg-gray-50 rounded">
+                                <span>Entry Tickets</span>
+                                <span class="font-bold text-blue-600">+90%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-4">Financial Impact</h4>
+                        <div class="space-y-3">
+                            <div class="text-center p-3 bg-red-50 rounded-lg">
+                                <div class="font-bold text-red-600 text-2xl">₹2.3 Cr</div>
+                                <div class="text-sm">Annual tourist losses</div>
+                            </div>
+                            <div class="text-center p-3 bg-orange-50 rounded-lg">
+                                <div class="font-bold text-orange-600 text-xl">₹18,500</div>
+                                <div class="text-sm">Average loss per tourist</div>
+                            </div>
+                            <div class="text-center p-3 bg-yellow-50 rounded-lg">
+                                <div class="font-bold text-yellow-600 text-xl">78%</div>
+                                <div class="text-sm">Tourists affected by overcharging</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features Grid -->
+    <section id="features" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Comprehensive Safety Features</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Advanced technology stack ensuring 360° protection for tourists across India. Updated with latest 2025 data: 15% reduction in incidents, 2.5hrs average response time, covering 30 states now.
+                </p>
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
+                    <p class="text-blue-800 font-medium">🎮 Interactive Demo: Click on any feature below to see it in action!</p>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('blockchain')">
+                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Blockchain Digital Tourist ID</h3>
+                    <p class="text-gray-600">Immutable, secure digital identity linked to Aadhaar with encrypted travel history and emergency contacts. Now with 1.2 million IDs issued in 2025.</p>
+                    <div class="mt-4 text-blue-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('ai-detection')">
+                    <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">AI Anomaly Detection</h3>
+                    <p class="text-gray-600">Detects route deviation, prolonged inactivity, distress patterns, and unusual behavior in real-time. Accuracy improved to 95% in 2025 with new ML models.</p>
+                    <div class="mt-4 text-green-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('geofencing')">
+                    <div class="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Geo-Fencing & Red-Zone Alerts</h3>
+                    <p class="text-gray-600">Smart boundary monitoring with automatic alerts for high-risk areas, restricted zones, and unsafe regions. Expanded to 500+ red-zones in 2025.</p>
+                    <div class="mt-4 text-orange-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('panic-button')">
+                    <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Panic Button & Live Tracking</h3>
+                    <p class="text-gray-600">One-touch SOS with GPS tracking, automatic police notification, and family alerts with auto e-FIR generation. Handled 500+ emergencies in Q1 2025.</p>
+                    <div class="mt-4 text-red-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('weather-alerts')">
+                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Weather & Disaster Alerts</h3>
+                    <p class="text-gray-600">Real-time notifications for floods, storms, landslides, and extreme weather conditions with evacuation guidance. Integrated with IMD data, 200+ alerts sent in 2025.</p>
+                    <div class="mt-4 text-blue-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('fare-transparency')">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Fare & Cost Transparency</h3>
+                    <p class="text-gray-600">Real-time pricing for transport, guides, and services with government-approved rate verification. Reduced overcharging by 40% in 2025 pilots.</p>
+                    <div class="mt-4 text-yellow-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('authority-dashboard')">
+                    <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Authority Dashboards</h3>
+                    <p class="text-gray-600">Unified command centers for police, tourism departments, and emergency services with heatmap visualization. Now with AI predictions for 2025 hotspots.</p>
+                    <div class="mt-4 text-purple-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('multilingual')">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Multilingual Support</h3>
+                    <p class="text-gray-600">Support for Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, French, Spanish. Added Mandarin and Arabic in 2025.</p>
+                    <div class="mt-4 text-indigo-600 font-medium text-sm">Click to demo →</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover feature-interactive cursor-pointer" onclick="showFeatureDemo('iot-wearable')">
+                    <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">IoT Wearable Integration</h3>
+                    <p class="text-gray-600">Smart bands and tags with SOS buttons, health monitoring, and location tracking for elderly and solo travelers. 100,000 devices deployed in 2025.</p>
+                    <div class="mt-4 text-green-600 font-medium text-sm">Click to demo →</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">How It Works</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Seamless integration from tourist arrival to comprehensive safety monitoring across India
+                </p>
+            </div>
+            
+            <div class="relative">
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-blue-200"></div>
+                
+                <div class="space-y-12">
+                    <div class="flex items-center">
+                        <div class="flex-1 text-right pr-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-2">Tourist Entry & Registration</h3>
+                            <p class="text-gray-600">Visitor arrives and registers at airport, railway station, or tourism center with Aadhaar verification</p>
+                        </div>
+                        <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center relative z-10 float-animation">
+                            <span class="text-white font-bold text-xl">1</span>
+                        </div>
+                        <div class="flex-1 pl-8"></div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="flex-1 pr-8"></div>
+                        <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center relative z-10 float-animation" style="animation-delay: 0.5s">
+                            <span class="text-white font-bold text-xl">2</span>
+                        </div>
+                        <div class="flex-1 text-left pl-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-2">Blockchain Digital ID Generation</h3>
+                            <p class="text-gray-600">Secure digital identity created with biometric data, emergency contacts, and travel itinerary</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="flex-1 text-right pr-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-2">Mobile App & IoT Setup</h3>
+                            <p class="text-gray-600">Tourist downloads app, syncs ID, enables location services, and optionally pairs IoT wearable</p>
+                        </div>
+                        <div class="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center relative z-10 float-animation" style="animation-delay: 1s">
+                            <span class="text-white font-bold text-xl">3</span>
+                        </div>
+                        <div class="flex-1 pl-8"></div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="flex-1 pr-8"></div>
+                        <div class="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center relative z-10 float-animation" style="animation-delay: 1.5s">
+                            <span class="text-white font-bold text-xl">4</span>
+                        </div>
+                        <div class="flex-1 text-left pl-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-2">Real-time Monitoring & Alerts</h3>
+                            <p class="text-gray-600">AI monitors location, weather conditions, red-zone proximity, and sends proactive safety alerts</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="flex-1 text-right pr-8">
+                            <h3 class="text-2xl font-semibold text-gray-900 mb-2">Emergency Response & Coordination</h3>
+                            <p class="text-gray-600">Instant coordination between police, medical services, tourism department, and family with auto e-FIR</p>
+                        </div>
+                        <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center relative z-10 float-animation" style="animation-delay: 2s">
+                            <span class="text-white font-bold text-xl">5</span>
+                        </div>
+                        <div class="flex-1 pl-8"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview with Tabs -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Dashboard Previews</h2>
+                <p class="text-xl text-gray-600">Real-time monitoring interfaces for tourists and authorities</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="flex space-x-4 mb-6">
+                    <button class="tab-button px-4 py-2 rounded-lg bg-gray-200" onclick="showDashboardTab('tourist-app')">Tourist App</button>
+                    <button class="tab-button px-4 py-2 rounded-lg bg-gray-200" onclick="showDashboardTab('authority-dashboard')">Authority Dashboard</button>
+                    <button class="tab-button px-4 py-2 rounded-lg bg-gray-200" onclick="showDashboardTab('digital-id')">Digital ID</button>
+                </div>
+                
+                <div id="tourist-app-tab" class="tab-content active">
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Tourist Mobile App</h3>
+                    <div class="bg-gray-900 rounded-3xl p-6 mx-auto max-w-sm">
+                        <div class="bg-blue-600 rounded-2xl p-4 text-white">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-medium">SafeTour India</span>
+                                <div class="flex items-center space-x-1">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></div>
+                                    <span class="text-xs">Safe Zone</span>
+                                </div>
+                            </div>
+                            <div class="text-center mb-4">
+                                <div class="text-2xl font-bold">Rajesh Kumar</div>
+                                <div class="text-sm opacity-80">Digital Tourist ID: #TID123456</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="bg-blue-700 rounded-lg p-2 text-center">
+                                    <div class="font-semibold">Weather</div>
+                                    <div>26°C Sunny</div>
+                                </div>
+                                <div class="bg-green-600 rounded-lg p-2 text-center">
+                                    <div class="font-semibold">Fare Check</div>
+                                    <div>₹150 Auto</div>
+                                </div>
+                            </div>
+                            <button class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl mt-4 font-semibold glow-animation" onclick="alert('Panic button activated! Help is on the way.')">
+                                🆘 PANIC BUTTON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="authority-dashboard-tab" class="tab-content">
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Authority Dashboard</h3>
+                    <div class="bg-gray-100 rounded-xl p-6">
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-600 text-white p-4 rounded-lg text-center">
+                                <div class="text-2xl font-bold">1,247</div>
+                                <div class="text-sm">Active Tourists</div>
+                            </div>
+                            <div class="bg-green-600 text-white p-4 rounded-lg text-center">
+                                <div class="text-2xl font-bold">98.7%</div>
+                                <div class="text-sm">Safe Status</div>
+                            </div>
+                            <div class="bg-orange-600 text-white p-4 rounded-lg text-center">
+                                <div class="text-2xl font-bold">3</div>
+                                <div class="text-sm">Weather Alerts</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Heatmap Simulation -->
+                        <div class="bg-white rounded-lg p-4">
+                            <h4 class="font-semibold mb-3">Tourist Density Heatmap</h4>
+                            <div class="grid grid-cols-8 gap-1">
+                                <div class="h-4 bg-green-200 rounded"></div>
+                                <div class="h-4 bg-green-400 rounded"></div>
+                                <div class="h-4 bg-yellow-300 rounded"></div>
+                                <div class="h-4 bg-orange-400 rounded"></div>
+                                <div class="h-4 bg-red-400 rounded red-zone-pulse"></div>
+                                <div class="h-4 bg-green-300 rounded"></div>
+                                <div class="h-4 bg-blue-300 rounded"></div>
+                                <div class="h-4 bg-green-200 rounded"></div>
+                            </div>
+                            <div class="flex justify-between text-xs mt-2 text-gray-600">
+                                <span>Low</span>
+                                <span>High Risk</span>
+                            </div>
+                            <button class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg" onclick="alert('Refreshing heatmap with latest data...')">Refresh Heatmap</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="digital-id-tab" class="tab-content">
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Digital Tourist ID</h3>
+                    <div class="bg-gray-100 rounded-xl p-6">
+                        <div class="bg-white p-4 rounded-lg border-2 border-blue-200 max-w-sm mx-auto">
+                            <div class="text-center mb-4">
+                                <div class="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                    <span class="text-white font-bold text-xl">RK</span>
+                                </div>
+                                <div class="font-bold text-lg">Rajesh Kumar</div>
+                                <div class="text-sm text-gray-600">Digital Tourist ID: TID-2024-IND-123456</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div><strong>Nationality:</strong> Indian</div>
+                                <div><strong>Valid Until:</strong> 31 Dec 2025</div>
+                                <div><strong>Emergency Contact:</strong> +91-9876543210</div>
+                                <div><strong>Medical Info:</strong> No allergies</div>
+                                <div><strong>Travel History:</strong> Delhi, Mumbai</div>
+                                <div><strong>Status:</strong> Active</div>
+                            </div>
+                            <div class="mt-3 p-2 bg-green-50 rounded text-center">
+                                <div class="text-green-600 font-semibold">✓ Verified & Active</div>
+                            </div>
+                            <button class="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-lg" onclick="alert('Digital ID verified successfully!')">Verify ID</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Benefits for Everyone</h2>
+            </div>
+            
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-blue-500">
+                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-4">For Tourists</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            24/7 safety monitoring & weather alerts
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Instant SOS with GPS tracking
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Transparent fare verification
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Multi-language support (12 languages)
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Red-zone & restricted area warnings
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-green-500">
+                    <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-4">For Authorities</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Real-time tourist monitoring dashboard
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Automatic e-FIR generation
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Predictive analytics & heatmaps
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Resource optimization & deployment
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Inter-agency coordination platform
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-orange-500">
+                    <div class="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-4">For Families</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Real-time location updates
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Instant emergency notifications
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Travel history & safety reports
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Peace of mind with 24/7 monitoring
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Weather & safety alerts for loved ones
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section id="technology" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Advanced Technology Stack</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Cutting-edge technologies ensuring reliability, security, and scalability for India's diverse landscape
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="text-center p-6 bg-white rounded-xl card-hover shadow-lg">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 glow-animation">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">AI/ML</h3>
+                    <p class="text-sm text-gray-600">Predictive Analytics & Anomaly Detection</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl card-hover shadow-lg">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 glow-animation">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Blockchain</h3>
+                    <p class="text-sm text-gray-600">Immutable Identity & Data Security</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl card-hover shadow-lg">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 glow-animation">
+                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Geo-fencing</h3>
+                    <p class="text-sm text-gray-600">Location-based Safety Monitoring</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl card-hover shadow-lg">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 glow-animation">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">IoT</h3>
+                    <p class="text-sm text-gray-600">Connected Wearables & Sensors</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl card-hover shadow-lg">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 glow-animation">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Encryption</h3>
+                    <p class="text-sm text-gray-600">End-to-End Data Protection</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Privacy & Security -->
+    <section class="py-20 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-6">Data Privacy & Security</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Your privacy and security are our top priorities. We implement government-grade protection standards compliant with Indian data protection laws.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center p-8 bg-gray-800 rounded-2xl">
+                    <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">End-to-End Encryption</h3>
+                    <p class="text-gray-300">All data transmitted and stored using AES-256 encryption standards with Aadhaar-level security</p>
+                </div>
+                
+                <div class="text-center p-8 bg-gray-800 rounded-2xl">
+                    <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Blockchain Immutability</h3>
+                    <p class="text-gray-300">Tamper-proof records ensure data integrity and authenticity with distributed ledger technology</p>
+                </div>
+                
+                <div class="text-center p-8 bg-gray-800 rounded-2xl">
+                    <div class="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 glow-animation">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.5-1.01-6-2.709M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Legal Compliance</h3>
+                    <p class="text-gray-300">Full compliance with IT Act 2000, Digital Personal Data Protection Act 2023, and international privacy laws</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="col-span-2">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-2xl font-bold">SafeTour India</span>
+                    </div>
+                    <p class="text-gray-300 mb-6 max-w-md">
+                        Revolutionizing tourist safety across India through advanced technology and real-time monitoring systems.
+                    </p>
+                    <div class="space-y-2">
+                        <p class="text-gray-300">
+                            <span class="font-semibold text-red-400">🆘 24/7 Emergency Helpline:</span> 1800-SAFETOUR (1800-723-3868)
+                        </p>
+                        <p class="text-gray-300">
+                            <span class="font-semibold">📧 Email:</span> support@safetour.gov.in
+                        </p>
+                        <p class="text-gray-300">
+                            <span class="font-semibold">🏢 Ministry:</span> Tourism & Home Affairs, Govt. of India
+                        </p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#challenges" class="text-gray-300 hover:text-white transition-colors">Safety Challenges</a></li>
+                        <li><a href="#features" class="text-gray-300 hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#how-it-works" class="text-gray-300 hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#technology" class="text-gray-300 hover:text-white transition-colors">Technology</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Tourist Guidelines</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">भाषा चुनें / Choose Language</h3>
+                    <select class="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none w-full">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                        <option value="gu">ગુજરાતી (Gujarati)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="ml">മലയാളം (Malayalam)</option>
+                        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="fr">Français (French)</option>
+                        <option value="es">Español (Spanish)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+                <p class="text-gray-400">
+                    © 2025 SafeTour India - Ministry of Tourism & Home Affairs, Government of India. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Challenge data toggle functionality
+        function toggleChallengeData(challengeType) {
+            const dataSection = document.getElementById(challengeType + '-data');
+            const isExpanded = dataSection.classList.contains('expanded');
+            
+            // Close all other sections
+            document.querySelectorAll('.expandable-section').forEach(section => {
+                section.classList.remove('expanded');
+            });
+            
+            // Toggle current section
+            if (!isExpanded) {
+                dataSection.classList.add('expanded');
+                dataSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // Feature demo functionality
+        function showFeatureDemo(featureType) {
+            const demoPanel = document.getElementById('demoPanel');
+            const demoOverlay = document.getElementById('demoOverlay');
+            const demoPanelTitle = document.getElementById('demoPanelTitle');
+            const demoPanelContent = document.getElementById('demoPanelContent');
+            
+            // Show panel and overlay
+            demoPanel.classList.add('active');
+            demoOverlay.classList.add('active');
+            
+            // Set content based on feature type
+            const demoContent = getDemoContent(featureType);
+            demoPanelTitle.textContent = demoContent.title;
+            demoPanelContent.innerHTML = demoContent.content;
+        }
+
+        function closeDemoPanel() {
+            const demoPanel = document.getElementById('demoPanel');
+            const demoOverlay = document.getElementById('demoOverlay');
+            
+            demoPanel.classList.remove('active');
+            demoOverlay.classList.remove('active');
+        }
+
+        function getDemoContent(featureType) {
+            const demoContents = {
+                'blockchain': {
+                    title: 'Blockchain Digital Tourist ID Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Digital ID Creation Process</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center p-3 bg-white rounded-lg shadow-sm">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-white text-sm">✓</span>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Aadhaar Verification</div>
+                                            <div class="text-sm text-gray-600">Biometric authentication completed</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center p-3 bg-white rounded-lg shadow-sm">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-white text-sm">2</span>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Blockchain Hash Generation</div>
+                                            <div class="text-sm text-gray-600">Creating immutable identity record</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center p-3 bg-white rounded-lg shadow-sm">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-white text-sm">3</span>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Digital ID Issued</div>
+                                            <div class="text-sm text-gray-600">TID-2024-IND-123456</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-100 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Sample Digital Tourist ID</h4>
+                                <div class="bg-white p-4 rounded-lg border-2 border-blue-200">
+                                    <div class="text-center mb-4">
+                                        <div class="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                            <span class="text-white font-bold text-xl">RK</span>
+                                        </div>
+                                        <div class="font-bold text-lg">Rajesh Kumar</div>
+                                        <div class="text-sm text-gray-600">Digital Tourist ID: TID-2024-IND-123456</div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div><strong>Nationality:</strong> Indian</div>
+                                        <div><strong>Valid Until:</strong> 31 Dec 2024</div>
+                                        <div><strong>Emergency Contact:</strong> +91-9876543210</div>
+                                        <div><strong>Medical Info:</strong> No allergies</div>
+                                    </div>
+                                    <div class="mt-3 p-2 bg-green-50 rounded text-center">
+                                        <div class="text-green-600 font-semibold">✓ Verified & Active</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-2">Security Features</h4>
+                                <ul class="text-sm space-y-1">
+                                    <li>• 256-bit encryption</li>
+                                    <li>• Blockchain immutability</li>
+                                    <li>• Biometric verification</li>
+                                    <li>• Real-time validation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `
+                },
+                'ai-detection': {
+                    title: 'AI Anomaly Detection Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Real-time Monitoring Dashboard</h4>
+                                <div class="space-y-3">
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-medium">Tourist: Rajesh Kumar</span>
+                                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Normal</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            <div>Location: Red Fort, Delhi</div>
+                                            <div>Last Activity: 2 minutes ago</div>
+                                            <div>Movement Pattern: Normal tourist behavior</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white p-3 rounded-lg border-l-4 border-orange-500">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-medium">Tourist: Sarah Johnson</span>
+                                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">Alert</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            <div>Location: Connaught Place, Delhi</div>
+                                            <div>Last Activity: 45 minutes ago</div>
+                                            <div class="text-orange-600 font-medium">⚠️ Prolonged inactivity detected</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">AI Detection Algorithms</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Route Deviation Detection</span>
+                                        <span class="text-green-600 font-bold">Active</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Panic Pattern Recognition</span>
+                                        <span class="text-green-600 font-bold">Active</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Unusual Behavior Analysis</span>
+                                        <span class="text-green-600 font-bold">Active</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Group Separation Alert</span>
+                                        <span class="text-green-600 font-bold">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Sample Alert Triggered</h4>
+                                <div class="bg-white p-3 rounded-lg border-l-4 border-red-500">
+                                    <div class="font-medium text-red-600 mb-2">🚨 High Priority Alert</div>
+                                    <div class="text-sm">
+                                        <div><strong>Tourist:</strong> Sarah Johnson (TID-2024-USA-789012)</div>
+                                        <div><strong>Issue:</strong> No movement detected for 45 minutes</div>
+                                        <div><strong>Location:</strong> Connaught Place, Delhi</div>
+                                        <div><strong>Action:</strong> Local police notified, family alerted</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                'geofencing': {
+                    title: 'Geo-Fencing & Red-Zone Alerts Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Live Geo-Fence Map</h4>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="grid grid-cols-4 gap-1 mb-3">
+                                        <div class="h-8 bg-green-200 rounded flex items-center justify-center text-xs">Safe</div>
+                                        <div class="h-8 bg-yellow-200 rounded flex items-center justify-center text-xs">Caution</div>
+                                        <div class="h-8 bg-orange-200 rounded flex items-center justify-center text-xs">Warning</div>
+                                        <div class="h-8 bg-red-200 rounded flex items-center justify-center text-xs animate-pulse">Danger</div>
+                                        <div class="h-8 bg-green-300 rounded flex items-center justify-center text-xs">Safe</div>
+                                        <div class="h-8 bg-blue-200 rounded flex items-center justify-center text-xs">Tourist</div>
+                                        <div class="h-8 bg-red-300 rounded flex items-center justify-center text-xs animate-pulse">Red Zone</div>
+                                        <div class="h-8 bg-yellow-300 rounded flex items-center justify-center text-xs">Caution</div>
+                                    </div>
+                                    <div class="text-center text-sm text-gray-600">Real-time safety zone visualization</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Red-Zone Alert System</h4>
+                                <div class="space-y-3">
+                                    <div class="bg-white p-3 rounded-lg border-l-4 border-red-500">
+                                        <div class="font-medium text-red-600 mb-1">🚨 Immediate Alert</div>
+                                        <div class="text-sm">
+                                            <div><strong>Zone:</strong> Restricted Military Area</div>
+                                            <div><strong>Distance:</strong> 500m ahead</div>
+                                            <div><strong>Action:</strong> Route alternative suggested</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white p-3 rounded-lg border-l-4 border-orange-500">
+                                        <div class="font-medium text-orange-600 mb-1">⚠️ Caution Alert</div>
+                                        <div class="text-sm">
+                                            <div><strong>Zone:</strong> High Crime Area</div>
+                                            <div><strong>Time:</strong> After 8 PM</div>
+                                            <div><strong>Recommendation:</strong> Avoid solo travel</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Geo-Fence Types</h4>
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="font-medium text-red-600">Restricted Zones</div>
+                                        <div class="text-gray-600">Military, Government areas</div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="font-medium text-orange-600">High Crime Areas</div>
+                                        <div class="text-gray-600">Based on police data</div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="font-medium text-yellow-600">Weather Zones</div>
+                                        <div class="text-gray-600">Flood, landslide prone</div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="font-medium text-blue-600">Safe Zones</div>
+                                        <div class="text-gray-600">Tourist-friendly areas</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                'panic-button': {
+                    title: 'Panic Button & Live Tracking Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Emergency Response Simulation</h4>
+                                <div class="text-center mb-4">
+                                    <button class="bg-red-500 text-white px-8 py-4 rounded-full text-lg font-bold animate-pulse" onclick="alert('Panic button activated! Alert sent to authorities.')">
+                                        🆘 PANIC BUTTON ACTIVATED
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-2">
+                                                <span class="text-white text-xs">✓</span>
+                                            </div>
+                                            <span class="font-medium">GPS Location Captured</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600 ml-8">
+                                            Lat: 28.6139, Long: 77.2090 (Red Fort, Delhi)
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-2">
+                                                <span class="text-white text-xs">✓</span>
+                                            </div>
+                                            <span class="font-medium">Police Notified</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600 ml-8">
+                                            Delhi Police Control Room - Response team dispatched
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-2">
+                                                <span class="text-white text-xs">✓</span>
+                                            </div>
+                                            <span class="font-medium">Family Alerted</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600 ml-8">
+                                            SMS & call sent to emergency contacts
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white p-3 rounded-lg">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                                                <span class="text-white text-xs">⏳</span>
+                                            </div>
+                                            <span class="font-medium">Auto e-FIR Generation</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600 ml-8">
+                                            FIR No: DL/2024/001234 - In progress
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Live Tracking Interface</h4>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="font-medium">Tourist: Rajesh Kumar</span>
+                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs animate-pulse">EMERGENCY</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <div class="font-medium">Current Location</div>
+                                            <div class="text-gray-600">Red Fort, Delhi</div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Response Time</div>
+                                            <div class="text-green-600 font-bold">ETA: 8 minutes</div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Nearest Hospital</div>
+                                            <div class="text-gray-600">LNJP Hospital (2.3 km)</div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Police Station</div>
+                                            <div class="text-gray-600">Red Fort PS (0.8 km)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Response Team Status</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Police Team</span>
+                                        <span class="text-blue-600">En Route - ETA 5 min</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Medical Team</span>
+                                        <span class="text-green-600">Standby - Ready</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Tourism Dept</span>
+                                        <span class="text-orange-600">Notified</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Family Contact</span>
+                                        <span class="text-red-600">Alert Sent</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                'weather-alerts': {
+                    title: 'Weather & Disaster Alerts Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Current Weather Alerts</h4>
+                                <div class="space-y-3">
+                                    <div class="bg-white p-3 rounded-lg border-l-4 border-orange-500">
+                                        <div class="font-medium text-orange-600 mb-1">⚠️ Heavy Rainfall</div>
+                                        <div class="text-sm">
+                                            <div><strong>Location:</strong> Mumbai Region</div>
+                                            <div><strong>Expected:</strong> 200mm in 24hrs</div>
+                                            <div><strong>Advice:</strong> Avoid outdoor activities</div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg border-l-4 border-red-500">
+                                        <div class="font-medium text-red-600 mb-1">🚨 Landslide Risk</div>
+                                        <div class="text-sm">
+                                            <div><strong>Location:</strong> Uttarakhand Hills</div>
+                                            <div><strong>Risk Level:</strong> High</div>
+                                            <div><strong>Evacuation:</strong> Recommended for low-lying areas</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Alert Distribution Stats (2025)</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Flood Alerts</span>
+                                        <span class="font-bold">120</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Storm Warnings</span>
+                                        <span class="font-bold">80</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Heatwave Advisories</span>
+                                        <span class="font-bold">50</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Evacuation Guidance</h4>
+                                <div class="text-sm text-gray-600">
+                                    <p>Nearest Safe Zone: 2km away</p>
+                                    <p>Route: Follow GPS navigation</p>
+                                    <p>Contact: Local Authorities +91-1122334455</p>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                'fare-transparency': {
+                    title: 'Fare & Cost Transparency Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Real-time Fare Checker</h4>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium mb-1">From - To</label>
+                                        <input type="text" class="w-full p-2 border rounded" placeholder="Delhi Airport to Red Fort" readonly value="Delhi Airport to Red Fort">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div class="p-3 bg-green-50 rounded">
+                                            <div class="font-medium">Auto Rickshaw</div>
+                                            <div class="text-green-600 font-bold">₹150 - ₹200</div>
+                                        </div>
+                                        <div class="p-3 bg-blue-50 rounded">
+                                            <div class="font-medium">Taxi</div>
+                                            <div class="text-blue-600 font-bold">₹300 - ₹400</div>
+                                        </div>
+                                    </div>
+                                    <button class="mt-4 w-full bg-yellow-500 text-white py-2 rounded-lg" onclick="alert('Fare verified as per government rates!')">Verify Fare</button>
+                                </div>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Overcharge Prevention Stats (2025)</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Cases Prevented</span>
+                                        <span class="font-bold">1,500+</span>
+                                    </div>
+                                    <div class="flex justify-between p-2 bg-white rounded">
+                                        <span>Savings for Tourists</span>
+                                        <span class="font-bold">₹1.2 Cr</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Report Overcharge</h4>
+                                <button class="w-full bg-red-500 text-white py-2 rounded-lg" onclick="alert('Overcharge reported! Investigation started.')">Report Now</button>
+                            </div>
+                        </div>
+                    `
+                },
+                'authority-dashboard': {
+                    title: 'Authority Dashboards Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Key Metrics (2025)</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white p-3 rounded-lg text-center">
+                                        <div class="text-2xl font-bold text-purple-600">2,500</div>
+                                        <div class="text-sm">Active Tourists</div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg text-center">
+                                        <div class="text-2xl font-bold text-green-600">99.2%</div>
+                                        <div class="text-sm">Safety Compliance</div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg text-center">
+                                        <div class="text-2xl font-bold text-orange-600">5</div>
+                                        <div class="text-sm">Active Alerts</div>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg text-center">
+                                        <div class="text-2xl font-bold text-red-600">2</div>
+                                        <div class="text-sm">Ongoing Incidents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Heatmap Controls</h4>
+                                <button class="w-full bg-purple-500 text-white py-2 rounded-lg mb-2" onclick="alert('Switching to national view...')">National View</button>
+                                <button class="w-full bg-purple-500 text-white py-2 rounded-lg" onclick="alert('Filtering by state: Delhi')">Filter by State</button>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">AI Predictions</h4>
+                                <div class="text-sm text-gray-600">
+                                    <p>Next Hotspot: Mumbai (High Risk - Rain)</p>
+                                    <p>Predicted Incidents: 15 in next 24hrs</p>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                'multilingual': {
+                    title: 'Multilingual Support Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Language Selector</h4>
+                                <select class="w-full p-2 border rounded" onchange="alert('Switching to ' + this.value + '...')">
+                                    <option>English</option>
+                                    <option>हिंदी</option>
+                                    <option>தமிழ்</option>
+                                    <option>తెలుగు</option>
+                                </select>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Sample Alert in Multiple Languages</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div>English: Weather Alert - Heavy Rain</div>
+                                    <div>हिंदी: मौसम अलर्ट - भारी बारिश</div>
+                                    <div>தமிழ்: வானிலை எச்சரிக்கை - கனமழை</div>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Usage Stats (2025)</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>English</span>
+                                        <span>45%</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Hindi</span>
+                                        <span>30%</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Other</span>
+                                        <span>25%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                'iot-wearable': {
+                    title: 'IoT Wearable Integration Demo',
+                    content: `
+                        <div class="space-y-6">
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Wearable Device Status</h4>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <div class="font-medium">Battery</div>
+                                            <div class="text-green-600">85%</div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Heart Rate</div>
+                                            <div class="text-blue-600">72 bpm</div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">Location</div>
+                                            <div class="text-gray-600">Synced</div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">SOS</div>
+                                            <div class="text-red-600">Ready</div>
+                                        </div>
+                                    </div>
+                                    <button class="mt-4 w-full bg-green-500 text-white py-2 rounded-lg" onclick="alert('Testing SOS button... Alert sent!')">Test SOS</button>
+                                </div>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Deployment Stats (2025)</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Devices Issued</span>
+                                        <span>100,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Active Users</span>
+                                        <span>75,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Alerts Triggered</span>
+                                        <span>300</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-semibold mb-3">Health Monitoring</h4>
+                                <div class="text-sm text-gray-600">
+                                    <p>Abnormal Heart Rate: Alert if >100 bpm</p>
+                                    <p>Fall Detection: Auto SOS</p>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                }
+            };
+            return demoContents[featureType] || {title: 'Demo Not Available', content: '<p>Coming soon!</p>'};
+        }
+
+        // Dashboard tab functionality
+        function showDashboardTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId + '-tab').classList.add('active');
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Hero button redirects to dashboard tabs
+        function showDashboardDemo(tabId) {
+            location.hash = '#dashboard-preview'; // Scroll to dashboard section if needed
+            showDashboardTab(tabId);
+        }
+    </script>
+</body>
+</html>
+```
