@@ -1,5 +1,9 @@
 # ✈️ Smart Tour - AI-Powered Travel Planning Platform
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-SmartTour-brightgreen?style=for-the-badge&logo=githubpages)](https://kumkumrathee2-crypto.github.io/SmartTour/)
+
+> **Live Application**: [https://kumkumrathee2-crypto.github.io/SmartTour/](https://kumkumrathee2-crypto.github.io/SmartTour/)
+
 Smart Tour is a web-based travel planning platform designed to make trip planning easier, visual, and personalized. Instead of searching destinations, hotels, routes, and attractions separately, Smart Tour brings these features together into one intuitive interface.
 
 ![Smart Tour](assets/hero.jpg)
