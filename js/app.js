@@ -1254,19 +1254,73 @@ function showToast(message) {
 }
 
 // ==========================================================================
-// Backend API Integration & User Authentication
+// Backend API Integration & User Authentication (Hybrid REST API + Fallback)
 // ==========================================================================
-const API_BASE = window.location.origin.includes('localhost') 
-  ? 'http://localhost:5000/api' 
-  : '/api';
+const API_BASE = 'http://localhost:5000/api';
 
-state.user = null;
 state.token = localStorage.getItem('smart_tour_token') || null;
+state.user = state.token ? (JSON.parse(localStorage.getItem('smart_tour_user_profile')) || null) : null;
+if (!state.token) {
+  localStorage.removeItem('smart_tour_user_profile');
+}
+
+// Local Auth storage helpers for static deployment (GitHub Pages fallback)
+function getLocalUsers() {
+  return JSON.parse(localStorage.getItem('smart_tour_users')) || [];
+}
+
+function saveLocalUsers(users) {
+  localStorage.setItem('smart_tour_users', JSON.stringify(users));
+}
+
+function localAuthLogin(email, password) {
+  const users = getLocalUsers();
+  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (!user) {
+    // If no user exists, create one on the fly for quick guest/demo sign in
+    const newUser = {
+      id: 'user_' + Date.now(),
+      name: email.split('@')[0] || 'Traveler',
+      email: email.toLowerCase().trim(),
+      password: password
+    };
+    users.push(newUser);
+    saveLocalUsers(users);
+    return { token: 'local_token_' + Date.now(), user: { id: newUser.id, name: newUser.name, email: newUser.email } };
+  }
+
+  if (user.password !== password) {
+    throw new Error('Incorrect password');
+  }
+
+  return { token: 'local_token_' + Date.now(), user: { id: user.id, name: user.name, email: user.email } };
+}
+
+function localAuthRegister(name, email, password) {
+  const users = getLocalUsers();
+  const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (existing) {
+    throw new Error('User with this email already exists. Please Sign In.');
+  }
+
+  const newUser = {
+    id: 'user_' + Date.now(),
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    password
+  };
+
+  users.push(newUser);
+  saveLocalUsers(users);
+  return { token: 'local_token_' + Date.now(), user: { id: newUser.id, name: newUser.name, email: newUser.email } };
+}
 
 async function fetchBackendData() {
-  // Fetch Destinations from REST API
+  // Fetch Destinations from REST API (with local fallback)
   try {
-    const res = await fetch(`${API_BASE}/destinations`);
+    const res = await fetch(`${API_BASE}/destinations`, { signal: AbortSignal.timeout(2000) });
     if (res.ok) {
       const data = await res.json();
       if (data.destinations && data.destinations.length > 0) {
@@ -1276,29 +1330,33 @@ async function fetchBackendData() {
       }
     }
   } catch (e) {
-    console.log('Using local destinations data:', e.message);
+    console.log('Using local destinations data');
   }
 
   // Restore User session if token exists
   if (state.token) {
     try {
       const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${state.token}` }
+        headers: { 'Authorization': `Bearer ${state.token}` },
+        signal: AbortSignal.timeout(2000)
       });
       if (res.ok) {
         const data = await res.json();
         state.user = data.user;
-        updateUserUI();
-        syncUserTripsFromBackend();
-      } else {
-        localStorage.removeItem('smart_tour_token');
+        localStorage.setItem('smart_tour_user_profile', JSON.stringify(state.user));
+      } else if (res.status === 401 || res.status === 403 || res.status === 404) {
+        // Token is expired or invalid - clear session
         state.token = null;
-        updateUserUI();
+        state.user = null;
+        localStorage.removeItem('smart_tour_token');
+        localStorage.removeItem('smart_tour_user_profile');
       }
     } catch (e) {
-      console.log('Backend auth check skipped:', e.message);
+      console.log('Backend offline or using local session token');
     }
   }
+
+  updateUserUI();
 }
 
 function initAuthUI() {
@@ -1307,14 +1365,31 @@ function initAuthUI() {
   const tabRegisterBtn = document.getElementById('tab-register-btn');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
-  const userProfileView = document.getElementById('user-profile-view');
   const logoutBtn = document.getElementById('logout-btn');
   const viewSavedProfileBtn = document.getElementById('view-saved-profile-btn');
+  const demoLoginBtn = document.getElementById('demo-login-btn');
 
   if (authNavBtn) {
     authNavBtn.addEventListener('click', () => {
       hideAuthError();
+      updateUserUI();
       openModal('auth-modal');
+    });
+  }
+
+  if (demoLoginBtn) {
+    demoLoginBtn.addEventListener('click', () => {
+      const emailInput = document.getElementById('login-email');
+      const passInput = document.getElementById('login-password');
+      if (emailInput) emailInput.value = 'demo@smarttour.com';
+      if (passInput) passInput.value = 'demo123456';
+      if (loginForm) {
+        if (typeof loginForm.requestSubmit === 'function') {
+          loginForm.requestSubmit();
+        } else {
+          loginForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
     });
   }
 
@@ -1354,29 +1429,48 @@ function initAuthUI() {
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
 
+      let authResult = null;
+
+      // Try Backend REST API first
       try {
         const res = await fetch(`${API_BASE}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password }),
+          signal: AbortSignal.timeout(2500)
         });
         const data = await res.json();
-
-        if (!res.ok) {
-          showAuthError(data.error || 'Login failed');
+        if (res.ok) {
+          authResult = data;
+        } else {
+          // If backend returns credentials error, check local storage auth fallback
+          try {
+            authResult = localAuthLogin(email, password);
+          } catch (localErr) {
+            showAuthError(data.error || localErr.message || 'Invalid email or password');
+            return;
+          }
+        }
+      } catch (err) {
+        // Fallback to local authentication for static host / offline
+        try {
+          authResult = localAuthLogin(email, password);
+        } catch (localErr) {
+          showAuthError(localErr.message);
           return;
         }
+      }
 
-        state.token = data.token;
-        state.user = data.user;
-        localStorage.setItem('smart_tour_token', data.token);
+      if (authResult) {
+        state.token = authResult.token;
+        state.user = authResult.user;
+        localStorage.setItem('smart_tour_token', authResult.token);
+        localStorage.setItem('smart_tour_user_profile', JSON.stringify(authResult.user));
 
         updateUserUI();
         syncUserTripsFromBackend();
         closeModal('auth-modal');
-        showToast(`Welcome back, ${data.user.name}! 🎉`);
-      } catch (err) {
-        showAuthError('Unable to connect to authentication backend server.');
+        showToast(`Welcome back, ${state.user.name}! 🎉`);
       }
     });
   }
@@ -1390,28 +1484,42 @@ function initAuthUI() {
       const email = document.getElementById('register-email').value;
       const password = document.getElementById('register-password').value;
 
+      let authResult = null;
+
+      // Try Backend REST API first
       try {
         const res = await fetch(`${API_BASE}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
+          body: JSON.stringify({ name, email, password }),
+          signal: AbortSignal.timeout(2500)
         });
         const data = await res.json();
-
-        if (!res.ok) {
+        if (res.ok) {
+          authResult = data;
+        } else {
           showAuthError(data.error || 'Registration failed');
           return;
         }
+      } catch (err) {
+        // Fallback to local authentication for static host / offline
+        try {
+          authResult = localAuthRegister(name, email, password);
+        } catch (localErr) {
+          showAuthError(localErr.message);
+          return;
+        }
+      }
 
-        state.token = data.token;
-        state.user = data.user;
-        localStorage.setItem('smart_tour_token', data.token);
+      if (authResult) {
+        state.token = authResult.token;
+        state.user = authResult.user;
+        localStorage.setItem('smart_tour_token', authResult.token);
+        localStorage.setItem('smart_tour_user_profile', JSON.stringify(authResult.user));
 
         updateUserUI();
         closeModal('auth-modal');
-        showToast(`Account created! Welcome, ${data.user.name}! 🚀`);
-      } catch (err) {
-        showAuthError('Unable to connect to authentication backend server.');
+        showToast(`Account created! Welcome, ${state.user.name}! 🚀`);
       }
     });
   }
@@ -1422,6 +1530,7 @@ function initAuthUI() {
       state.token = null;
       state.user = null;
       localStorage.removeItem('smart_tour_token');
+      localStorage.removeItem('smart_tour_user_profile');
       updateUserUI();
       closeModal('auth-modal');
       showToast('Successfully signed out 👋');

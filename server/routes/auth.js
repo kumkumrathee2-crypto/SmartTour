@@ -100,7 +100,7 @@ router.get('/me', authenticateToken, (req, res) => {
   const db = readDB();
   const user = db.users.find(u => u.id === req.user.id);
   if (!user) {
-    return res.status(444).json({ error: 'User not found' });
+    return res.status(401).json({ error: 'User not found' });
   }
   res.json({
     user: {

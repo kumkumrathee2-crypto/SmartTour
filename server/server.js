@@ -112,6 +112,23 @@ function seedDatabase() {
     writeDB(db);
     console.log('Database seeded with initial destinations.');
   }
+
+  // Seed demo user if no users exist
+  if (!db.users || db.users.length === 0) {
+    const bcrypt = require('bcryptjs');
+    const demoPasswordHash = bcrypt.hashSync('demo123456', 10);
+    db.users = [
+      {
+        id: 'user_demo',
+        name: 'Demo Traveler',
+        email: 'demo@smarttour.com',
+        passwordHash: demoPasswordHash,
+        createdAt: new Date().toISOString()
+      }
+    ];
+    writeDB(db);
+    console.log('Database seeded with demo user.');
+  }
 }
 
 seedDatabase();
