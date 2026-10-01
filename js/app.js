@@ -326,8 +326,10 @@ function filterDestinations(query = '', categoryOverride = null) {
   let filtered = [...state.destinations];
 
   // Category filter
-  if (cat !== 'all') {
-    filtered = filtered.filter(d => d.categories.includes(cat));
+  if (cat && cat !== 'all') {
+    filtered = filtered.filter(d => 
+      d.categories.some(c => c.toLowerCase() === cat.toLowerCase())
+    );
   }
 
   // Budget filter
