@@ -52,6 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initPlannerWizard();
   initModals();
   initQuiz();
+  initAuthUI();
+  fetchBackendData();
   updateSavedBadge();
 
   // Load default preset trip or first destination if URL has hash
@@ -939,10 +941,10 @@ function setupCanvasToolbarActions() {
   };
 }
 
-function saveCurrentTrip() {
+async function saveCurrentTrip() {
   if (!state.activeTrip) return;
   
-  // Check if trip exists
+  // Check if trip exists locally
   const existingIdx = state.savedTrips.findIndex(t => t.id === state.activeTrip.id);
   if (existingIdx >= 0) {
     state.savedTrips[existingIdx] = state.activeTrip;
@@ -952,6 +954,27 @@ function saveCurrentTrip() {
 
   localStorage.setItem('smart_tour_saved_trips', JSON.stringify(state.savedTrips));
   updateSavedBadge();
+
+  // If user is authenticated, save trip to REST API backend database
+  if (state.token) {
+    try {
+      const res = await fetch(`${API_BASE}/trips`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`
+        },
+        body: JSON.stringify(state.activeTrip)
+      });
+      if (res.ok) {
+        showToast('☁️ Trip Blueprint synced to your cloud account!');
+        return;
+      }
+    } catch (e) {
+      console.log('Failed to sync trip to server:', e.message);
+    }
+  }
+
   showToast('💾 Trip Blueprint saved to profile!');
 }
 
@@ -1015,11 +1038,23 @@ function renderSavedTrips() {
       renderItineraryStudio();
     });
 
-    card.querySelector('.delete-saved-btn').addEventListener('click', () => {
+    card.querySelector('.delete-saved-btn').addEventListener('click', async () => {
       if (confirm(`Delete saved trip "${trip.title}"?`)) {
         state.savedTrips = state.savedTrips.filter(t => t.id !== trip.id);
         localStorage.setItem('smart_tour_saved_trips', JSON.stringify(state.savedTrips));
         updateSavedBadge();
+
+        if (state.token) {
+          try {
+            await fetch(`${API_BASE}/trips/${trip.id}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${state.token}` }
+            });
+          } catch (e) {
+            console.log('Error deleting trip from server:', e.message);
+          }
+        }
+
         renderSavedTrips();
         showToast('Saved trip deleted');
       }
@@ -1216,4 +1251,256 @@ function showToast(message) {
     toast.style.transition = 'opacity 0.3s ease';
     setTimeout(() => toast.remove(), 300);
   }, 3200);
+}
+
+// ==========================================================================
+// Backend API Integration & User Authentication
+// ==========================================================================
+const API_BASE = window.location.origin.includes('localhost') 
+  ? 'http://localhost:5000/api' 
+  : '/api';
+
+state.user = null;
+state.token = localStorage.getItem('smart_tour_token') || null;
+
+async function fetchBackendData() {
+  // Fetch Destinations from REST API
+  try {
+    const res = await fetch(`${API_BASE}/destinations`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.destinations && data.destinations.length > 0) {
+        state.destinations = data.destinations;
+        renderFeaturedDestinations();
+        renderAllDestinations();
+      }
+    }
+  } catch (e) {
+    console.log('Using local destinations data:', e.message);
+  }
+
+  // Restore User session if token exists
+  if (state.token) {
+    try {
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${state.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        state.user = data.user;
+        updateUserUI();
+        syncUserTripsFromBackend();
+      } else {
+        localStorage.removeItem('smart_tour_token');
+        state.token = null;
+        updateUserUI();
+      }
+    } catch (e) {
+      console.log('Backend auth check skipped:', e.message);
+    }
+  }
+}
+
+function initAuthUI() {
+  const authNavBtn = document.getElementById('auth-nav-btn');
+  const tabLoginBtn = document.getElementById('tab-login-btn');
+  const tabRegisterBtn = document.getElementById('tab-register-btn');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const userProfileView = document.getElementById('user-profile-view');
+  const logoutBtn = document.getElementById('logout-btn');
+  const viewSavedProfileBtn = document.getElementById('view-saved-profile-btn');
+
+  if (authNavBtn) {
+    authNavBtn.addEventListener('click', () => {
+      hideAuthError();
+      openModal('auth-modal');
+    });
+  }
+
+  if (tabLoginBtn && tabRegisterBtn) {
+    tabLoginBtn.addEventListener('click', () => {
+      tabLoginBtn.classList.add('active');
+      tabLoginBtn.style.color = 'var(--primary)';
+      tabLoginBtn.style.borderBottom = '2px solid var(--primary)';
+      tabRegisterBtn.classList.remove('active');
+      tabRegisterBtn.style.color = 'var(--text-muted)';
+      tabRegisterBtn.style.borderBottom = 'none';
+
+      if (loginForm) loginForm.style.display = 'block';
+      if (registerForm) registerForm.style.display = 'none';
+      hideAuthError();
+    });
+
+    tabRegisterBtn.addEventListener('click', () => {
+      tabRegisterBtn.classList.add('active');
+      tabRegisterBtn.style.color = 'var(--primary)';
+      tabRegisterBtn.style.borderBottom = '2px solid var(--primary)';
+      tabLoginBtn.classList.remove('active');
+      tabLoginBtn.style.color = 'var(--text-muted)';
+      tabLoginBtn.style.borderBottom = 'none';
+
+      if (registerForm) registerForm.style.display = 'block';
+      if (loginForm) loginForm.style.display = 'none';
+      hideAuthError();
+    });
+  }
+
+  // Handle Login Submit
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAuthError();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAuthError(data.error || 'Login failed');
+          return;
+        }
+
+        state.token = data.token;
+        state.user = data.user;
+        localStorage.setItem('smart_tour_token', data.token);
+
+        updateUserUI();
+        syncUserTripsFromBackend();
+        closeModal('auth-modal');
+        showToast(`Welcome back, ${data.user.name}! 🎉`);
+      } catch (err) {
+        showAuthError('Unable to connect to authentication backend server.');
+      }
+    });
+  }
+
+  // Handle Register Submit
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAuthError();
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAuthError(data.error || 'Registration failed');
+          return;
+        }
+
+        state.token = data.token;
+        state.user = data.user;
+        localStorage.setItem('smart_tour_token', data.token);
+
+        updateUserUI();
+        closeModal('auth-modal');
+        showToast(`Account created! Welcome, ${data.user.name}! 🚀`);
+      } catch (err) {
+        showAuthError('Unable to connect to authentication backend server.');
+      }
+    });
+  }
+
+  // Handle Logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      state.token = null;
+      state.user = null;
+      localStorage.removeItem('smart_tour_token');
+      updateUserUI();
+      closeModal('auth-modal');
+      showToast('Successfully signed out 👋');
+    });
+  }
+
+  if (viewSavedProfileBtn) {
+    viewSavedProfileBtn.addEventListener('click', () => {
+      closeModal('auth-modal');
+      switchTab('saved');
+    });
+  }
+}
+
+function showAuthError(msg) {
+  const errDiv = document.getElementById('auth-error-msg');
+  if (errDiv) {
+    errDiv.textContent = msg;
+    errDiv.style.display = 'block';
+  }
+}
+
+function hideAuthError() {
+  const errDiv = document.getElementById('auth-error-msg');
+  if (errDiv) errDiv.style.display = 'none';
+}
+
+function updateUserUI() {
+  const authBtnText = document.getElementById('auth-btn-text');
+  const authUserIcon = document.getElementById('auth-user-icon');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const userProfileView = document.getElementById('user-profile-view');
+  const authTabs = document.querySelector('.auth-tabs');
+  const modalTitle = document.getElementById('auth-modal-title');
+
+  if (state.user) {
+    if (authBtnText) authBtnText.textContent = state.user.name.split(' ')[0];
+    if (authUserIcon) authUserIcon.className = 'fa-solid fa-user-check';
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'none';
+    if (authTabs) authTabs.style.display = 'none';
+    if (userProfileView) userProfileView.style.display = 'block';
+
+    const profileName = document.getElementById('profile-user-name');
+    const profileEmail = document.getElementById('profile-user-email');
+    if (profileName) profileName.textContent = state.user.name;
+    if (profileEmail) profileEmail.textContent = state.user.email;
+    if (modalTitle) modalTitle.textContent = 'Account Profile';
+  } else {
+    if (authBtnText) authBtnText.textContent = 'Sign In';
+    if (authUserIcon) authUserIcon.className = 'fa-solid fa-user-circle';
+    if (loginForm) loginForm.style.display = 'block';
+    if (registerForm) registerForm.style.display = 'none';
+    if (authTabs) authTabs.style.display = 'flex';
+    if (userProfileView) userProfileView.style.display = 'none';
+    if (modalTitle) modalTitle.textContent = 'Account Access';
+  }
+}
+
+async function syncUserTripsFromBackend() {
+  if (!state.token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/trips`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.trips) {
+        state.savedTrips = data.trips;
+        localStorage.setItem('smart_tour_saved_trips', JSON.stringify(state.savedTrips));
+        updateSavedBadge();
+        if (state.currentTab === 'saved') {
+          renderSavedTripsView();
+        }
+      }
+    }
+  } catch (e) {
+    console.log('Could not sync trips from backend:', e.message);
+  }
 }

@@ -238,6 +238,24 @@ body.dark-mode .nav-link:hover, body.dark-mode .nav-link.active {
   transform: translateY(-1px);
 }
 
+.btn-outline {
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-outline:hover {
+  background: var(--bg-subtle);
+}
+
 .badge-count {
   position: absolute;
   top: -4px;
