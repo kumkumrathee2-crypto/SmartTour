@@ -1256,7 +1256,9 @@ function showToast(message) {
 // ==========================================================================
 // Backend API Integration & User Authentication (Hybrid REST API + Fallback)
 // ==========================================================================
-const API_BASE = 'http://localhost:5000/api';
+// Determine API base: Use backend API if running locally over HTTP, otherwise fallback to client auth for static HTTPS deployments (e.g. GitHub Pages)
+const IS_HTTPS = window.location.protocol === 'https:';
+const API_BASE = IS_HTTPS ? null : 'http://localhost:5000/api';
 
 state.token = localStorage.getItem('smart_tour_token') || null;
 state.user = state.token ? (JSON.parse(localStorage.getItem('smart_tour_user_profile')) || null) : null;
@@ -1318,41 +1320,43 @@ function localAuthRegister(name, email, password) {
 }
 
 async function fetchBackendData() {
-  // Fetch Destinations from REST API (with local fallback)
-  try {
-    const res = await fetch(`${API_BASE}/destinations`, { signal: AbortSignal.timeout(2000) });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.destinations && data.destinations.length > 0) {
-        state.destinations = data.destinations;
-        renderFeaturedDestinations();
-        renderAllDestinations();
-      }
-    }
-  } catch (e) {
-    console.log('Using local destinations data');
-  }
-
-  // Restore User session if token exists
-  if (state.token) {
+  if (API_BASE) {
+    // Fetch Destinations from REST API (with local fallback)
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${state.token}` },
-        signal: AbortSignal.timeout(2000)
-      });
+      const res = await fetch(`${API_BASE}/destinations`, { signal: AbortSignal.timeout(2000) });
       if (res.ok) {
         const data = await res.json();
-        state.user = data.user;
-        localStorage.setItem('smart_tour_user_profile', JSON.stringify(state.user));
-      } else if (res.status === 401 || res.status === 403 || res.status === 404) {
-        // Token is expired or invalid - clear session
-        state.token = null;
-        state.user = null;
-        localStorage.removeItem('smart_tour_token');
-        localStorage.removeItem('smart_tour_user_profile');
+        if (data.destinations && data.destinations.length > 0) {
+          state.destinations = data.destinations;
+          renderFeaturedDestinations();
+          renderAllDestinations();
+        }
       }
     } catch (e) {
-      console.log('Backend offline or using local session token');
+      console.log('Using local destinations data');
+    }
+
+    // Restore User session if token exists
+    if (state.token) {
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${state.token}` },
+          signal: AbortSignal.timeout(2000)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          state.user = data.user;
+          localStorage.setItem('smart_tour_user_profile', JSON.stringify(state.user));
+        } else if (res.status === 401 || res.status === 403 || res.status === 404) {
+          // Token is expired or invalid - clear session
+          state.token = null;
+          state.user = null;
+          localStorage.removeItem('smart_tour_token');
+          localStorage.removeItem('smart_tour_user_profile');
+        }
+      } catch (e) {
+        console.log('Backend offline or using local session token');
+      }
     }
   }
 
@@ -1431,28 +1435,38 @@ function initAuthUI() {
 
       let authResult = null;
 
-      // Try Backend REST API first
-      try {
-        const res = await fetch(`${API_BASE}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-          signal: AbortSignal.timeout(2500)
-        });
-        const data = await res.json();
-        if (res.ok) {
-          authResult = data;
-        } else {
-          // If backend returns credentials error, check local storage auth fallback
+      // Try Backend REST API first if API_BASE is configured
+      if (API_BASE) {
+        try {
+          const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            signal: AbortSignal.timeout(2500)
+          });
+          const data = await res.json();
+          if (res.ok) {
+            authResult = data;
+          } else {
+            // If backend returns credentials error, check local storage auth fallback
+            try {
+              authResult = localAuthLogin(email, password);
+            } catch (localErr) {
+              showAuthError(data.error || localErr.message || 'Invalid email or password');
+              return;
+            }
+          }
+        } catch (err) {
+          // Fallback to local authentication for static host / offline
           try {
             authResult = localAuthLogin(email, password);
           } catch (localErr) {
-            showAuthError(data.error || localErr.message || 'Invalid email or password');
+            showAuthError(localErr.message);
             return;
           }
         }
-      } catch (err) {
-        // Fallback to local authentication for static host / offline
+      } else {
+        // Direct local client authentication for static HTTPS hosting (GitHub Pages)
         try {
           authResult = localAuthLogin(email, password);
         } catch (localErr) {
@@ -1486,23 +1500,33 @@ function initAuthUI() {
 
       let authResult = null;
 
-      // Try Backend REST API first
-      try {
-        const res = await fetch(`${API_BASE}/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password }),
-          signal: AbortSignal.timeout(2500)
-        });
-        const data = await res.json();
-        if (res.ok) {
-          authResult = data;
-        } else {
-          showAuthError(data.error || 'Registration failed');
-          return;
+      // Try Backend REST API first if API_BASE is configured
+      if (API_BASE) {
+        try {
+          const res = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password }),
+            signal: AbortSignal.timeout(2500)
+          });
+          const data = await res.json();
+          if (res.ok) {
+            authResult = data;
+          } else {
+            showAuthError(data.error || 'Registration failed');
+            return;
+          }
+        } catch (err) {
+          // Fallback to local authentication for static host / offline
+          try {
+            authResult = localAuthRegister(name, email, password);
+          } catch (localErr) {
+            showAuthError(localErr.message);
+            return;
+          }
         }
-      } catch (err) {
-        // Fallback to local authentication for static host / offline
+      } else {
+        // Direct local client authentication for static HTTPS hosting (GitHub Pages)
         try {
           authResult = localAuthRegister(name, email, password);
         } catch (localErr) {
@@ -1592,11 +1616,12 @@ function updateUserUI() {
 }
 
 async function syncUserTripsFromBackend() {
-  if (!state.token) return;
+  if (!state.token || !API_BASE) return;
 
   try {
     const res = await fetch(`${API_BASE}/trips`, {
-      headers: { 'Authorization': `Bearer ${state.token}` }
+      headers: { 'Authorization': `Bearer ${state.token}` },
+      signal: AbortSignal.timeout(1500)
     });
     if (res.ok) {
       const data = await res.json();
