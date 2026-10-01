@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Tour - AI-Powered Travel Blueprint & Trip Planner</title>
+  <meta name="description" content="Plan personalized travel itineraries, explore top tourist destinations, discover attractions, and manage day-wise trip schedules with interactive maps.">
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+  
+  <!-- Leaflet Map CSS CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       Header & Global Navigation
+       ========================================================================== -->
+  <header class="header">
+    <div class="container nav-container">
+      <a href="#" class="logo" id="logo-btn">
+        <div class="logo-icon">
+          <i class="fa-solid fa-compass"></i>
+        </div>
+        <span>Smart<span class="gradient-text">Tour</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#home" class="nav-link active" data-tab="home"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="#destinations" class="nav-link" data-tab="destinations"><i class="fa-solid fa-earth-americas"></i> Destinations</a></li>
+        <li><a href="#planner" class="nav-link" data-tab="planner"><i class="fa-solid fa-map-location-dot"></i> Trip Planner</a></li>
+        <li><a href="#saved" class="nav-link" data-tab="saved"><i class="fa-solid fa-bookmark"></i> Saved Trips</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <select class="currency-select" id="global-currency-select" title="Select Currency">
+          <option value="USD">$ USD</option>
+          <option value="EUR">€ EUR</option>
+          <option value="GBP">£ GBP</option>
+          <option value="INR">₹ INR</option>
+          <option value="JPY">¥ JPY</option>
+        </select>
+
+        <button class="icon-btn" id="saved-trips-btn" title="View Saved Trips">
+          <i class="fa-regular fa-heart"></i>
+          <span class="badge-count" id="saved-count-badge">0</span>
+        </button>
+
+        <button class="icon-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+          <i class="fa-regular fa-moon" id="theme-icon"></i>
+        </button>
+
+        <button class="btn-primary" id="start-planning-nav-btn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Plan a Trip
+        </button>
+
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       Main Views (Tab-Based Single Page Application)
+       ========================================================================== -->
+  <main>
+    
+    <!-- 1. HOME VIEW -->
+    <section id="view-home" class="tab-view active-view">
+      <!-- Hero Section -->
+      <div class="container">
+        <div class="hero">
+          <img src="assets/hero.jpg" alt="Travel Banner" class="hero-bg">
+          <div class="hero-overlay"></div>
+          
+          <div class="hero-content">
+            <div class="hero-badge">
+              <i class="fa-solid fa-sparkles"></i> AI-Powered Personalized Itineraries
+            </div>
+            <h1 class="hero-title">Your Next Unforgettable Journey, Perfected in Seconds</h1>
+            <p class="hero-subtitle">Discover top destinations, generate tailored day-by-day travel plans, explore local attractions, and visualize your routes on interactive maps.</p>
+
+            <!-- Quick Search Bar -->
+            <div class="hero-search-box">
+              <div class="search-field">
+                <i class="fa-solid fa-location-dot"></i>
+                <input type="text" id="hero-search-input" placeholder="Where do you want to go? (e.g. Paris, Kyoto, Bali...)">
+              </div>
+              <div class="search-field">
+                <i class="fa-solid fa-tag"></i>
+                <select id="hero-category-select">
+                  <option value="all">All Experiences</option>
+                  <option value="Culture">Culture & Art</option>
+                  <option value="Heritage">History & Monuments</option>
+                  <option value="Nature">Nature & Outdoors</option>
+                  <option value="Beach">Beaches & Coastal</option>
+                  <option value="Adventure">Adventure & Thrills</option>
+                </select>
+              </div>
+              <button class="hero-search-btn" id="hero-search-submit">
+                <i class="fa-solid fa-magnifying-glass"></i> Explore
+              </button>
+            </div>
+
+            <!-- Quick Filter Tags -->
+            <div class="quick-tags">
+              <span style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-right: 0.25rem;">Popular:</span>
+              <button class="tag-btn" data-dest="paris">Paris</button>
+              <button class="tag-btn" data-dest="kyoto">Kyoto</button>
+              <button class="tag-btn" data-dest="santorini">Santorini</button>
+              <button class="tag-btn" data-dest="bali">Bali</button>
+              <button class="tag-btn" data-dest="swiss-alps">Swiss Alps</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How Smart Tour Works -->
+      <div class="section container">
+        <div class="section-header">
+          <div class="section-title-group">
+            <h2>How Smart Tour Works</h2>
+            <p>Four effortless steps from inspiration to your tailored trip itinerary</p>
+          </div>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-num">01</div>
+            <div class="step-icon"><i class="fa-solid fa-compass"></i></div>
+            <h3>1. Explore Destinations</h3>
+            <p>Browse curated world destinations with imagery, weather, costs, and top attraction highlights.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">02</div>
+            <div class="step-icon"><i class="fa-solid fa-sliders"></i></div>
+            <h3>2. Customize Preferences</h3>
+            <p>Select your dates, travel style, budget, group type, and preferred daily pace.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">03</div>
+            <div class="step-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <h3>3. Generate Itinerary</h3>
+            <p>Our algorithm synthesizes an optimal day-by-day travel plan matching your interests.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">04</div>
+            <div class="step-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+            <h3>4. Interactive Map & Export</h3>
+            <p>Visualize attractions on dynamic maps, edit activities, and download or share your trip blueprint.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured Destinations Grid -->
+      <div class="section container">
+        <div class="section-header">
+          <div class="section-title-group">
+            <h2>Trending Destinations</h2>
+            <p>Hand-picked spots loved by travelers around the globe</p>
+          </div>
+          <button class="btn-secondary" id="view-all-destinations-btn">
+            View All Destinations <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="destinations-grid" id="home-featured-grid">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+
+      <!-- Travel Persona Quiz Banner -->
+      <div class="container">
+        <div class="quiz-banner">
+          <div class="quiz-banner-content">
+            <h2>Unsure Where to Go Next?</h2>
+            <p>Take our quick 30-second Travel Persona Quiz and let Smart Tour recommend your ideal getaway destination!</p>
+            <button class="btn-accent" id="open-quiz-btn">
+              <i class="fa-solid fa-lightbulb"></i> Take Travel Quiz
+            </button>
+          </div>
+          <div class="quiz-banner-graphic" style="font-size: 6rem; opacity: 0.85;">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. EXPLORE DESTINATIONS VIEW -->
+    <section id="view-destinations" class="tab-view container" style="display: none;">
+      <div class="section-header" style="margin-top: 2rem;">
+        <div class="section-title-group">
+          <h2>Explore Tourist Destinations</h2>
+          <p>Discover incredible cities, islands, and mountain escapes worldwide</p>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-bar">
+        <div class="category-pills" id="category-filter-pills">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <select id="budget-filter-select" class="form-control" style="width: auto;">
+            <option value="all">All Budgets</option>
+            <option value="$">Budget ($)</option>
+            <option value="$$">Moderate ($$)</option>
+            <option value="$$$">Luxury ($$$)</option>
+          </select>
+
+          <select id="sort-filter-select" class="form-control" style="width: auto;">
+            <option value="rating">Top Rated</option>
+            <option value="name">Alphabetical</option>
+            <option value="cost-low">Budget: Low to High</option>
+            <option value="cost-high">Budget: High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Destinations Grid -->
+      <div class="destinations-grid" id="all-destinations-grid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- 3. TRIP PLANNER STUDIO (Wizard + Canvas) -->
+    <section id="view-planner" class="tab-view container" style="display: none;">
+      
+      <!-- WIZARD STEP CONTAINER -->
+      <div id="planner-wizard-container" class="section" style="padding-top: 1rem;">
+        <div class="wizard-card">
+          <div class="wizard-header">
+            <h2 class="gradient-text">Plan Your Personalized Tour</h2>
+            <p>Customize your destination, dates, travel style, and schedule</p>
+          </div>
+
+          <!-- Wizard Indicators -->
+          <div class="wizard-steps">
+            <div class="step-indicator active" data-step="1">1</div>
+            <div class="step-indicator" data-step="2">2</div>
+            <div class="step-indicator" data-step="3">3</div>
+            <div class="step-indicator" data-step="4">4</div>
+          </div>
+
+          <!-- Step 1: Select Destination -->
+          <div class="wizard-content-step active" id="wizard-step-1">
+            <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> Step 1: Where are you traveling?</h3>
+            
+            <div class="form-group">
+              <label for="wizard-dest-select">Select Destination</label>
+              <select id="wizard-dest-select" class="form-control" style="font-size: 1.05rem; padding: 1rem;">
+                <option value="" disabled selected>-- Select a Destination --</option>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+
+            <div id="wizard-dest-preview" style="display: none; background: var(--bg-subtle); padding: 1rem; border-radius: var(--border-radius-md); margin-top: 1rem;">
+              <!-- Preview rendered on select -->
+            </div>
+          </div>
+
+          <!-- Step 2: Dates & Duration -->
+          <div class="wizard-content-step" id="wizard-step-2">
+            <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Step 2: When are you going?</h3>
+            
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="wizard-start-date">Start Date</label>
+                <input type="date" id="wizard-start-date" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="wizard-end-date">End Date</label>
+                <input type="date" id="wizard-end-date" class="form-control">
+              </div>
+            </div>
+
+            <div style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.85rem 1.25rem; border-radius: var(--border-radius-md); font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+              <span>Total Trip Duration:</span>
+              <span id="wizard-duration-badge" style="font-size: 1.1rem; font-weight: 800;">3 Days</span>
+            </div>
+          </div>
+
+          <!-- Step 3: Travel Style & Budget -->
+          <div class="wizard-content-step" id="wizard-step-3">
+            <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> Step 3: Travel Preferences</h3>
+            
+            <div class="form-group">
+              <label>Who are you traveling with?</label>
+              <div class="tile-options" id="group-tile-group">
+                <div class="option-tile selected" data-value="Solo">
+                  <i class="fa-solid fa-user"></i>
+                  <h4>Solo Explorer</h4>
+                  <p>Flexibility & discovery</p>
+                </div>
+                <div class="option-tile" data-value="Couple">
+                  <i class="fa-solid fa-heart"></i>
+                  <h4>Couple / Romantic</h4>
+                  <p>Scenic & cozy spots</p>
+                </div>
+                <div class="option-tile" data-value="Family">
+                  <i class="fa-solid fa-people-roof"></i>
+                  <h4>Family Trip</h4>
+                  <p>Kids friendly & comfortable</p>
+                </div>
+                <div class="option-tile" data-value="Friends">
+                  <i class="fa-solid fa-user-group"></i>
+                  <h4>Friends Group</h4>
+                  <p>High energy & nightlife</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Preferred Daily Pace</label>
+              <div class="tile-options" id="pace-tile-group">
+                <div class="option-tile" data-value="Relaxed">
+                  <i class="fa-solid fa-mug-hot"></i>
+                  <h4>Relaxed</h4>
+                  <p>2 main spots per day</p>
+                </div>
+                <div class="option-tile selected" data-value="Balanced">
+                  <i class="fa-solid fa-scale-balanced"></i>
+                  <h4>Balanced</h4>
+                  <p>3-4 spots per day</p>
+                </div>
+                <div class="option-tile" data-value="Fast-Paced">
+                  <i class="fa-solid fa-bolt"></i>
+                  <h4>Fast-Paced</h4>
+                  <p>5+ packed attractions</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Summary & Generate -->
+          <div class="wizard-content-step" id="wizard-step-4">
+            <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> Step 4: Ready to Generate Blueprint</h3>
+            
+            <div id="wizard-summary-box" style="background-color: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+              <!-- Summary populated by JS -->
+            </div>
+
+            <button class="btn-primary" id="generate-itinerary-btn" style="width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Smart Tour Blueprint
+            </button>
+          </div>
+
+          <!-- Wizard Footer Buttons -->
+          <div class="wizard-footer">
+            <button class="btn-secondary" id="wizard-prev-btn" style="display: none;">
+              <i class="fa-solid fa-arrow-left"></i> Previous
+            </button>
+            <button class="btn-primary" id="wizard-next-btn">
+              Next Step <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITINERARY CANVAS STUDIO (Shown once blueprint generated or loaded) -->
+      <div id="itinerary-canvas-container" style="display: none; padding-bottom: 3rem;">
+        
+        <!-- Canvas Top Bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; background-color: var(--bg-surface); padding: 1rem 1.5rem; border-radius: var(--border-radius-lg); border: 1px solid var(--border-color);">
+          <div>
+            <h2 id="canvas-trip-title" style="font-size: 1.6rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>My Paris Blueprint</span>
+              <button id="edit-trip-title-btn" style="font-size: 1rem; color: var(--text-muted); cursor: pointer;" title="Edit Trip Title">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+            </h2>
+            <p id="canvas-trip-dates" style="color: var(--text-muted); font-size: 0.9rem;">Oct 12 - Oct 15 • 3 Days • Balanced Pace</p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <button class="btn-secondary" id="replan-wizard-btn" title="Edit Trip Settings">
+              <i class="fa-solid fa-sliders"></i> Edit Settings
+            </button>
+            <button class="btn-secondary" id="open-packing-btn" title="Packing Checklist">
+              <i class="fa-solid fa-suitcase"></i> Packing List
+            </button>
+            <button class="btn-secondary" id="export-pdf-btn" title="Print or Save PDF">
+              <i class="fa-solid fa-print"></i> Export PDF
+            </button>
+            <button class="btn-secondary" id="share-trip-btn" title="Share Trip Link">
+              <i class="fa-solid fa-share-nodes"></i> Share
+            </button>
+            <button class="btn-primary" id="save-trip-btn">
+              <i class="fa-solid fa-bookmark"></i> Save Trip
+            </button>
+          </div>
+        </div>
+
+        <!-- Studio Split Layout: Timeline + Interactive Map -->
+        <div class="itinerary-studio">
+          
+          <!-- Left Timeline Panel -->
+          <div class="itinerary-panel">
+            
+            <!-- Summary Header -->
+            <div class="trip-overview-bar">
+              <div class="trip-overview-info">
+                <h3>Day-by-Day Schedule</h3>
+                <p>Drag, reorder, or add custom places</p>
+              </div>
+              <div class="trip-stats">
+                <div class="stat-box">
+                  <div class="val" id="stat-total-cost">$240</div>
+                  <div class="lbl">Est. Cost</div>
+                </div>
+                <div class="stat-box">
+                  <div class="val" id="stat-total-spots">8</div>
+                  <div class="lbl">Attractions</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Day Selector Tabs -->
+            <div class="day-tabs" id="itinerary-day-tabs">
+              <!-- Rendered dynamically by JS -->
+            </div>
+
+            <!-- Timeline List -->
+            <div class="timeline-container" id="timeline-activity-list">
+              <!-- Activity Cards Rendered by JS -->
+            </div>
+
+            <!-- Add Attraction Button -->
+            <button class="btn-secondary" id="add-attraction-btn" style="width: 100%; margin-top: 1rem; justify-content: center;">
+              <i class="fa-solid fa-plus"></i> Add Attraction to Day
+            </button>
+          </div>
+
+          <!-- Right Interactive Map Panel -->
+          <div class="map-panel">
+            <div class="map-header">
+              <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-map-marked-alt" style="color: var(--primary);"></i> Route & Location Map
+              </div>
+              <span style="font-size: 0.8rem; color: var(--text-muted);" id="map-pin-count">Showing 4 locations</span>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="map"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- 4. SAVED TRIPS VIEW -->
+    <section id="view-saved" class="tab-view container" style="display: none;">
+      <div class="section-header" style="margin-top: 2rem;">
+        <div class="section-title-group">
+          <h2>Your Saved Travel Blueprints</h2>
+          <p>Access your saved trip plans anytime</p>
+        </div>
+      </div>
+
+      <div id="saved-trips-grid" class="destinations-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       Modals
+       ========================================================================== -->
+  
+  <!-- 1. Destination Detail Modal -->
+  <div class="modal-overlay" id="destination-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-dest-title">Paris, France</h3>
+        <button class="close-modal-btn" data-close="destination-modal">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-dest-body">
+        <!-- Dynamic content filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Travel Quiz Modal -->
+  <div class="modal-overlay" id="quiz-modal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-lightbulb" style="color: var(--secondary);"></i> Travel Persona Quiz</h3>
+        <button class="close-modal-btn" data-close="quiz-modal">&times;</button>
+      </div>
+      <div class="modal-body" id="quiz-modal-body">
+        <!-- Interactive quiz content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Add Attraction Modal -->
+  <div class="modal-overlay" id="add-activity-modal">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3>Add Attraction to Itinerary</h3>
+        <button class="close-modal-btn" data-close="add-activity-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Select Attraction from Destination Registry</label>
+          <div id="available-attractions-list" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 350px; overflow-y: auto;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Packing List Checklist Modal -->
+  <div class="modal-overlay" id="packing-modal">
+    <div class="modal-card" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-suitcase" style="color: var(--primary);"></i> Smart Packing Checklist</h3>
+        <button class="close-modal-btn" data-close="packing-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Tailored for your destination's weather & trip length</p>
+        <div id="packing-items-list" style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem;">
+          <!-- Items generated by JS -->
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="new-packing-item-input" class="form-control" placeholder="Add custom item (e.g. Camera tripod)...">
+          <button class="btn-primary" id="add-packing-item-btn">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Share Trip Modal -->
+  <div class="modal-overlay" id="share-modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3>Share Travel Blueprint</h3>
+        <button class="close-modal-btn" data-close="share-modal">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <i class="fa-solid fa-share-nodes" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Copy the shareable link below to invite friends or family to view this itinerary:</p>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="share-link-input" class="form-control" readonly value="https://smarttour.app/trip?id=123">
+          <button class="btn-primary" id="copy-share-btn"><i class="fa-solid fa-copy"></i> Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Toast Container
+       ========================================================================== -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ==========================================================================
+       Footer
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-compass"></i></div>
+            <span>Smart<span class="gradient-text">Tour</span></span>
+          </a>
+          <p>Smart Tour brings destination discovery, personalized planning, day-wise itineraries, and interactive maps into one seamless interface.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#destinations">Destinations</a></li>
+            <li><a href="#planner">Trip Planner</a></li>
+            <li><a href="#saved">Saved Blueprints</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Destinations</h4>
+          <ul>
+            <li><a href="#" class="footer-dest-link" data-dest="paris">Paris, France</a></li>
+            <li><a href="#" class="footer-dest-link" data-dest="kyoto">Kyoto, Japan</a></li>
+            <li><a href="#" class="footer-dest-link" data-dest="santorini">Santorini, Greece</a></li>
+            <li><a href="#" class="footer-dest-link" data-dest="bali">Bali, Indonesia</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Legal & Support</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Travel FAQs</a></li>
+            <li><a href="#">Contact Us</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Smart Tour Travel Platform. Crafted for effortless travel planning.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS CDN -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+
+  <!-- Application Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
